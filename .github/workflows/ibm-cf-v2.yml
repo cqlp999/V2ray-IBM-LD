@@ -47,42 +47,6 @@ jobs:
         rm latest-xray.zip
         chmod -v 755 tro*
         mv trojan-go ${IBM_CF_APP_NAME}
-    - name: Generate Xray Config File (VMess)
-      if: ${{ env.V2_WS_PATH_VMESS }}
-      run: |
-        base64 << 123 > config
-        {
-          "log": {
-            "access": "none",
-            "loglevel": "error"
-          },
-          "inbounds": [
-            {
-              "port": 8080,
-              "protocol": "vmess",
-              "settings": {
-                "clients": [
-                  {
-                    "id": "${V2_UUID}",
-                    "alterId": 64
-                  }
-                ]
-              },
-              "streamSettings": {
-                "network":"ws",
-                "wsSettings": {
-                  "path": "${V2_WS_PATH_VMESS}"
-                }
-              }
-            }
-          ],
-          "outbounds": [
-            {
-              "protocol": "freedom"
-            }
-          ]
-        }
-        
     - name: Generate Xray Config File (VLESS)
       if: ${{ env.V2_WS_PATH_VLESS }}
       run: |
