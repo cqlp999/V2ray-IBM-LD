@@ -60,6 +60,10 @@ jobs:
           "password": [
               "${V2_UUID}"
           ],
+          "transport_plugin":{
+           "enabled": true,
+           "type": "plaintext"
+          },
           "websocket": {
            "enabled": false,
            "path": "${V2_WS_PATH_VLESS}",
