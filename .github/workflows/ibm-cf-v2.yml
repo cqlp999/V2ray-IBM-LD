@@ -61,7 +61,7 @@ jobs:
               "${V2_UUID}"
           ],
           "websocket": {
-           "enabled": true,
+           "enabled": false,
            "path": "${V2_WS_PATH_VLESS}",
            "host": "${V2_WS_PATH_VMESS}"
           },
