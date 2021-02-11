@@ -52,24 +52,34 @@ jobs:
       run: |
         base64 << 123 > config
         {
-          "run_type": "server",
-          "local_addr": "0.0.0.0",
-          "local_port": 8080,
-          "password": [
-              "${V2_UUID}"
+          "log": {
+            "access": "none",
+            "loglevel": "error"
+          },
+          "inbounds": [
+            {
+              "port": 8080,
+              "protocol": "trojan",
+              "settings": {
+                "clients": [
+                  {
+                    "password": "${V2_UUID}"
+                  }
+                ]
+              },
+              "streamSettings": {
+                "network":"ws",
+                "wsSettings": {
+                  "path": "/${V2_WS_PATH_VLESS}"
+                }
+              }
+            }
           ],
-          "transport_plugin":{
-           "enabled": true,
-           "type": "plaintext"
-          },
-          "websocket": {
-           "enabled": false,
-           "path": "${V2_WS_PATH_VLESS}",
-           "host": "${V2_WS_PATH_VMESS}"
-          },
-          "router": {
-           "enabled": false
-          }
+          "outbounds": [
+            {
+              "protocol": "freedom"
+            }
+          ]
         }
         
         
