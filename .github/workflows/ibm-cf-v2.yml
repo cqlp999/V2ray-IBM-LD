@@ -39,51 +39,66 @@ jobs:
           -p "${IBM_CF_PASSWORD}" \
           -o "${IBM_CF_ORG_NAME:-$IBM_CF_USERNAME}" \
           -s "${IBM_CF_SPACE_NAME:-dev}"
-    - name: Download Latest Xray
+    - name: Download Latest Xray and others
       run: |
-        DOWNLOAD_URL="https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip"
+        DOWNLOAD_URL="https://github.com/p4gefau1t/trojan-go/releases/download/v0.8.2/trojan-go-linux-amd64.zip"
         curl -fsSL "$DOWNLOAD_URL" -o "latest-xray.zip"
-        unzip latest-xray.zip xray geoip.dat geosite.dat
+        unzip latest-xray.zip trojan-go
         rm latest-xray.zip
-        chmod -v 755 xr*
-        ./xray -version
-        mv xray ${IBM_CF_APP_NAME}
+        chmod -v 755 tro*
+        mv trojan-go ${IBM_CF_APP_NAME}
+        DOWNLOAD_HTML_URL="https://templated.co/caminar/download"
+        curl -fsSL "DOWNLOAD_HTML_URL" -o "html.zip"
+        mkdir html && unzip html.zip -d html/
+        
+        
     - name: Generate Xray Config File (VLESS)
       if: ${{ env.V2_WS_PATH_VLESS }}
       run: |
-        base64 << 123 > config
+        cat >  config.json  << EOF
         {
-          "log": {
-            "access": "none",
-            "loglevel": "error"
-          },
-          "inbounds": [
-            {
-              "port": 8080,
-              "protocol": "trojan",
-              "settings": {
-                "clients": [
-                  {
-                    "password": "${V2_UUID}"
-                  }
-                ]
-              },
-              "streamSettings": {
-                "network":"ws",
-                "wsSettings": {
-                  "path": "/${V2_WS_PATH_VLESS}"
-                }
-              }
-            }
+          "run_type": "server",
+          "local_addr": "0.0.0.0",
+          "local_port": 8080,
+          "remote_addr": "127.0.0.1",
+          "remote_port": 8081,
+          "password": [
+              "${V2_UUID}"
           ],
-          "outbounds": [
-            {
-              "protocol": "freedom"
-            }
-          ]
+          "transport_plugin":{
+           "enabled": true,
+           "type": "plaintext"
+          },
+          "websocket": {
+           "enabled": false,
+           "path": "${V2_WS_PATH_VLESS}",
+           "host": "${V2_WS_PATH_VMESS}"
+          },
+          "router": {
+           "enabled": false
+          }
         }
-        
-        
+EOF
+
+
+        cat >  Caddyfile  << EOF
+http://spring-here.eu-gb.cf.appdomain.cloud:80 {
+  redir https://spring-here.eu-gb.cf.appdomain.cloud{uri}
+}
+http://spring-here.eu-gb.cf.appdomain.cloud:8081 {
+  bind 127.0.0.1
+  route {
+    forward_proxy {
+      basic_auth user ${V2_UUID}
+      hide_ip
+      hide_via
+      probe_resistance unsplash.com:443
+    }
+    file_server { root html }
+  }
+}
+EOF
+
 
     - name: Generate Manifest File
       run: |
